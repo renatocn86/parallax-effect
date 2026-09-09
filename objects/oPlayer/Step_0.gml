@@ -3,6 +3,8 @@ key_right = keyboard_check(ord("D"))
 
 x -= (key_left - key_right)*5
 
+y += vsp
+
 var camX = camera_get_view_x(view_camera[0]);
 var camY = camera_get_view_y(view_camera[0]);
 
