@@ -1,9 +1,19 @@
 key_left = keyboard_check(ord("A"))
 key_right = keyboard_check(ord("D"))
+key_jump = keyboard_check_pressed(vk_space)
 
 x -= (key_left - key_right)*5
 
-y += vsp
+if(place_meeting(x, y+1, oSolid)){
+	vsp = 0
+	if(key_jump){
+		vsp = -2
+	}
+}
+
+//move_and_collide(hsp, vsp, oSolid)
+
+y += 1
 
 var camX = camera_get_view_x(view_camera[0]);
 var camY = camera_get_view_y(view_camera[0]);
