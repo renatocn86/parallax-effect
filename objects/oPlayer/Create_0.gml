@@ -4,6 +4,7 @@ move_speed = 5;
 jump_speed = 12;
 gravity_force = 1;      // Força da gravidade por frame
 max_fall_speed = 10;    // Velocidade máxima de queda
+_dir_x = 0
 
 move_x = 0;
 move_y = 0;
@@ -12,7 +13,7 @@ facing = 1;             // 1 = Direita, -1 = Esquerda (utilizado para o visual)
 
 #region Variáveis de Pulo Duplo
 // Variáveis responsáveis por controlar a quantidade de pulos no ar
-jumps_max = 2;          // Número total de pulos permitidos (chão + 1 extra no ar)
+jumps_max = 10;          // Número total de pulos permitidos (chão + 1 extra no ar)
 jumps_current = 0;      // Contador de quantos pulos o jogador já usou
 #endregion
 
@@ -35,4 +36,10 @@ enum STATES {
 }
 
 state = STATES.NORMAL;  // O jogador sempre começa no estado normal
+#endregion
+
+#region Colisões
+
+collision_map = [layer_tilemap_get_id("Terrain"), oSolid]
+
 #endregion

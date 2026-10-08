@@ -8,7 +8,7 @@ switch (state) {
         
         // --- 1. INPUTS DE MOVIMENTO HORIZONTAL ---
         // Direita (1) - Esquerda (1). O resultado será -1, 0 ou 1.
-        var _dir_x = keyboard_check(ord("D")) - keyboard_check(ord("A"));
+        _dir_x = keyboard_check(ord("D")) - keyboard_check(ord("A"));
         
         // Sobrescreve o move_x para este frame (não acumula ao infinito, evita crash de NaN)
         move_x = _dir_x * move_speed;
@@ -16,10 +16,12 @@ switch (state) {
         
         // --- 2. LÓGICA DE FÍSICA E PULOS (Duplo Incluído) ---
         // Verifica se está tocando no chão
-        if (place_meeting(x, y + 2, oSolid)) {
+        if (place_meeting(x, y+2, collision_map)) {
             jumps_current = 0; // No chão, reseta o contador de pulos
             move_y = 0;
         } 
+		
+		
         // Se estiver no ar, aplica a gravidade
         else if (move_y < max_fall_speed) { 
             move_y += gravity_force; 
@@ -69,12 +71,14 @@ switch (state) {
         // Ignora gravidade (move_y) e inputs (move_x) neste estado
         // A velocidade e direção (move_x) já foram definidas ao entrar no estado NORMAL
         move_y = 0; 
+		move_speed = dash_speed;
         
         // Verifica se o tempo limite do dash foi alcançado
         if (dash_current_frame >= dash_duration) {
             state = STATES.NORMAL;  // Devolve o controle ao jogador
             move_x = 0;             // Zera a velocidade horizontal para cortar o impulso secamente
-        }
+			move_speed = 5;
+	   }
         
     #endregion
     break; // Fim do estado DASHING
@@ -83,8 +87,37 @@ switch (state) {
 #endregion
 
 #region Aplicação de Física e Colisões
+// --- SISTEMA DE EMPURRAR BLOCOS ---
+// Verifica se o movimento horizontal pretendido vai bater em uma caixa
+var _caixa = instance_place(x + move_x, y, oCaixa);
+
+if (_caixa != noone) {
+    var _push_speed = 2; // Velocidade em que a caixa é empurrada (mais lenta que correr)
+    
+    // Acessa o escopo da caixa específica que o jogador tocou
+    with (_caixa) {
+        
+        // Verifica se o espaço à frente da caixa está livre de outros oSolid (paredes ou outras caixas)
+        if (!place_meeting(x + sign(other.move_x) * _push_speed, y, oSolid)) {
+            
+            // Move a caixa fisicamente
+            x += sign(other.move_x) * _push_speed;
+            
+            // Reduz a velocidade horizontal do jogador para sincronizar com a caixa
+            // (evita que o jogador "entre" no sprite da caixa ao empurrar)
+            other.move_x = sign(other.move_x) * _push_speed;
+            
+        } else {
+            // Se a caixa estiver encostada numa parede, ela trava, logo o jogador deve parar
+            other.move_x = 0;
+        }
+    }
+}
+
+// O seu move_and_collide já existente vem logo aqui abaixo:
+// move_and_collide(move_x, move_y, oSolid, 4, 0, 0, move_speed, -1);
 // A função move_and_collide sempre ocorre fora do Switch para que as paredes funcionem em QUALQUER estado.
-move_and_collide(move_x, move_y, oSolid, 4, 0, 0, move_speed, -1);
+move_and_collide(move_x, move_y, collision_map, 4, 0, 0, move_speed, -1);
 #endregion
 
 #region Controle Visual e Direção
@@ -99,7 +132,7 @@ if (move_x != 0) {
 #region Sistema de Slopes (Declives)
 // Permite subir ladeiras suavemente. Se não há parede a frente na altura dos pés (y+2), 
 // mas HÁ uma elevação mais baixa (y+10), ele ajusta o move_y para compensar.
-if (!place_meeting(x + move_x, y + 2, oSolid) && place_meeting(x + move_x, y + 10, oSolid)) {
+if (!place_meeting(x + move_x, y + 2, collision_map) && place_meeting(x + move_x, y + 10, collision_map)) {
     move_y = abs(move_x);
     move_x = 0; 
 }
@@ -117,5 +150,12 @@ for (var i = 1; i <= 11; i++) {
     layer_x("Background_" + string(i), camX * _spd_layer); 
     layer_y("Background_" + string(i), camY * _spd_layer); 
     _spd_layer -= 0.1; // Decrementa a velocidade para criar profundidade
+}
+#endregion
+
+#region Mecanica de disparo
+
+if(mouse_check_button_pressed(mb_left)){
+	instance_create_layer(x, y-16, "Instances", oBullet) // Spawna a bala co centro do personagem [ajustar x e y para mudar o ponto de spawn]
 }
 #endregion

@@ -33,8 +33,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"sprBrick02",
-    "path":"sprites/sprBrick02/sprBrick02.yy",
+    "name":"sprBrick2",
+    "path":"sprites/sprBrick2/sprBrick2.yy",
   },
   "spriteMaskId":null,
   "visible":true,
